@@ -71,12 +71,12 @@ public class DirectoryPlugin extends APlugin{
 	private HashMap<Integer,BufferedImage> images = new HashMap<Integer,BufferedImage>();
 	JPanel recourcePanel = new JPanel(new BorderLayout(5, 5));
 	
-	@Override
+
 	public String getName() {
 		return "Directory";
 	}
 
-	@Override
+
 	public void setData(DicomObject _dcm) throws Exception {
 		dcm = _dcm;
 		if(DirFilePath == ""){
@@ -205,7 +205,7 @@ public class DirectoryPlugin extends APlugin{
 	{
 		
 		patient_combo.addActionListener(new ActionListener() {		
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				setCombos(dir_type.patient);
 	  			serie_combo.setVisible(false);
@@ -214,7 +214,7 @@ public class DirectoryPlugin extends APlugin{
 			}
 		});
 		studie_combo.addActionListener(new ActionListener() {  
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				setCombos(dir_type.studie);
 	  			serie_combo.setVisible(true);
@@ -222,7 +222,7 @@ public class DirectoryPlugin extends APlugin{
 	  			writeInformation(studie_combo.getSelectedItem().toString(),dir_type.studie);
 			}});
 		serie_combo.addActionListener(new ActionListener(){
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 	  			setCombos(dir_type.serie);
 	  			recource_combo.setVisible(true);
@@ -230,7 +230,7 @@ public class DirectoryPlugin extends APlugin{
 			}});
 			    
 		recource_combo.addActionListener(new ActionListener(){
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 					if(recource_combo.getSelectedItem() == "select"){
 						writeInformation(serie_combo.getSelectedItem().toString(),dir_type.serie);
@@ -371,7 +371,7 @@ public class DirectoryPlugin extends APlugin{
 		DirFilePath = path;
 	}
 
-	@Override
+
 	public void setLanguage(Locale locale) {
 		// TODO Auto-generated method stub
 		

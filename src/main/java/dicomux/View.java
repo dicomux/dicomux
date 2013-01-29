@@ -116,27 +116,27 @@ public class View extends JFrame implements IView {
 	 */
 	private final Object m_refreshLock = new Object(); 
 	
-	@Override
+
 	public void registerModel(IModel model) {
 		m_model = model;
 	}
 	
-	@Override
+
 	public void notifyView() {
 		refreshAllTabs();
 	}
 	
-	@Override
+
 	public void registerController(IController controller) {
 		m_controller = controller;
 	}
 	
-	@Override
+
 	public int getActiveWorkspaceId() {
 		return m_tabbedPane.getSelectedIndex();
 	}
 	
-	@Override
+
 	public Locale getLanguage() {
 		if(m_languageBundle != null)
 			return m_languageBundle.getLocale();
@@ -160,7 +160,7 @@ public class View extends JFrame implements IView {
 		setTitle("Dicomux");
 		setMinimumSize(new Dimension(800, 600));
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setIconImage(new ImageIcon(this.getClass().getClassLoader().getResource("logo.png")).getImage());
+		setIconImage(new ImageIcon(this.getClass().getClassLoader().getResource("images/logo.png")).getImage());
 		
 		// extract own contentPane and set its layout manager
 		Container contentPane = getContentPane();
@@ -191,7 +191,7 @@ public class View extends JFrame implements IView {
 	private void initializeTabbedPane() {
 		m_tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 		m_tabbedPane.addChangeListener(new ChangeListener() {
-			@Override
+		
 			public void stateChanged(ChangeEvent e) {
 				synchronized (m_refreshLock) {
 					if (!m_refreshInProgress) {
@@ -306,7 +306,7 @@ public class View extends JFrame implements IView {
 		JMenu menu = new JMenu(m_languageBundle.getString("key_file"));
 		JMenuItem tmp = new JMenuItem(m_languageBundle.getString("key_openFile"));
 		tmp.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openDicomFileDialog();
 			}
@@ -314,7 +314,7 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		tmp = new JMenuItem(m_languageBundle.getString("key_openDir"));
 		tmp.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openDicomDirectoryDialog();
 			}
@@ -323,7 +323,7 @@ public class View extends JFrame implements IView {
 		menu.addSeparator();
 		tmp = new JMenuItem(m_languageBundle.getString("key_closeTab"));
 		tmp.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeWorkspace();
 			}
@@ -331,7 +331,7 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		tmp = new JMenuItem(m_languageBundle.getString("key_closeAllTabs"));
 		tmp.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeAllWorkspaces();
 			}
@@ -340,7 +340,7 @@ public class View extends JFrame implements IView {
 		menu.addSeparator();
 		tmp = new JMenuItem(m_languageBundle.getString("key_exit"));
 		tmp.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeApplication();
 			}
@@ -373,7 +373,7 @@ public class View extends JFrame implements IView {
 			for (final APlugin i: suitablePlugins) {
 				JMenuItem tmp = new JMenuItem(i.getName());
 				tmp.addActionListener(new ActionListener() {
-					@Override
+				
 					public void actionPerformed(ActionEvent arg0) {
 						m_controller.setActivePlugin(i.getName());
 					}
@@ -388,7 +388,7 @@ public class View extends JFrame implements IView {
 	 */
 	private void addLanguageMenu() {
 		ActionListener langAL = new ActionListener() { // the action listener for all language change actions
-			@Override
+		
 			public void actionPerformed(ActionEvent arg0) {
 				// build new Locale
 				Locale newLocale = new Locale(arg0.getActionCommand());
@@ -449,7 +449,7 @@ public class View extends JFrame implements IView {
 		return langs;
 	}
 	
-	@Override
+
 	public void setLanguage(Locale locale) {
 		// We try to save the language setting now. We simply want to load it at the next start.
 		try {
@@ -468,7 +468,7 @@ public class View extends JFrame implements IView {
 		JMenu menu = new JMenu(m_languageBundle.getString("key_help"));
 		JMenuItem tmp = new JMenuItem(m_languageBundle.getString("key_about"));
 		tmp.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openAbout();
 			}
@@ -575,7 +575,7 @@ public class View extends JFrame implements IView {
 			filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
 			filechooser.setLocale(m_languageBundle.getLocale());		// Set the current language to the file chooser!
 			filechooser.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent e) {			// declare what to do if the user presses OK / Cancel
 					JFileChooser chooser = (JFileChooser) e.getSource();
 					if (JFileChooser.APPROVE_SELECTION.equals(e.getActionCommand())) {
@@ -603,7 +603,7 @@ public class View extends JFrame implements IView {
 			filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
 			filechooser.setLocale(m_languageBundle.getLocale());		// Set the current language to the file chooser!
 			filechooser.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent e) {			// declare what to do if the user presses OK / Cancel
 					JFileChooser chooser = (JFileChooser) e.getSource();
 					if (JFileChooser.APPROVE_SELECTION.equals(e.getActionCommand()))
@@ -656,7 +656,7 @@ public class View extends JFrame implements IView {
 			
 			if (Desktop.isDesktopSupported()) {		// a link has to be opened in the default web browser
 				content.addHyperlinkListener(new HyperlinkListener() {
-					@Override
+				
 					public void hyperlinkUpdate(HyperlinkEvent e) {
 						if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED &&
 								!(e instanceof HTMLFrameHyperlinkEvent)) {
@@ -734,9 +734,9 @@ public class View extends JFrame implements IView {
 		private JComponent makeOpenButtons() {
 			JPanel retVal = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0), false);
 			JButton tmp = new JButton(m_languageBundle.getString("key_openFile"));
-			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("text-x-generic.png")));
+			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/text-x-generic.png")));
 			tmp.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent e) {
 					m_controller.openDicomFileDialog();
 				}
@@ -744,9 +744,9 @@ public class View extends JFrame implements IView {
 			retVal.add(tmp);
 			
 			tmp = new JButton(m_languageBundle.getString("key_openDir"));
-			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("folder.png")));
+			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/folder.png")));
 			tmp.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent e) {
 					m_controller.openDicomDirectoryDialog();
 				}
@@ -754,9 +754,9 @@ public class View extends JFrame implements IView {
 			retVal.add(tmp);
 			
 			tmp = new JButton(m_languageBundle.getString("key_exit"));
-			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("system-log-out.png")));
+			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-log-out.png")));
 			tmp.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent e) {
 					m_controller.closeApplication();
 				}

@@ -60,6 +60,7 @@ public class WaveformPlugin extends APlugin {
 	private String displayFormat;
 	private ToolPanel tools;
 	private InfoPanel infoPanel;
+	private int numberOfSamples;		
 	private int samples_per_second;
 	private int data[][];
 	private ChannelDefinition[] channelDefinitions;
@@ -88,7 +89,7 @@ public class WaveformPlugin extends APlugin {
 	private String displayFormatDefault;
 	private String displayFormatFourParts;
 	private String displayFormatFourPartsPlus;
-	private String displayFormatTwoParts;	
+	private String displayFormatTwoParts;
 	
 	public WaveformPlugin() throws Exception {
 		super();
@@ -104,85 +105,13 @@ public class WaveformPlugin extends APlugin {
 		
 	}
 	
-	@Override
+
 	public String getName() {
 		return "Waveform ECG";
 	}
 	
-	@Override
-	public void setData(DicomObject dcm) throws Exception {
-		m_content = new JPanel(new BorderLayout(5, 5));
-		
-		// get WaveformSequence
-		DicomElement temp = dcm.get(Tag.WaveformSequence);
-		if(temp == null)
-			throw new Exception("Could not read WaveformSequence");
-		
-		dcm = temp.getDicomObject();
-		
-		// read the number of allocated bits per sample 
-		// used to differ between general ECG and 12 Lead ECG
-		DicomElement bitsAllocated = dcm.get(Tag.WaveformBitsAllocated);
-		if(bitsAllocated == null)
-			throw new Exception("Could not read WaveformBitsAllocated");
-		
-		// read waveform data which contains the samples
-		DicomElement waveformData = dcm.get(Tag.WaveformData);
-		if(waveformData == null)
-			throw new Exception("Could not read WaveformData");
-		
-		// read the sampling frequency, used to calculate the seconds 
-		DicomElement samplingFrequency = dcm.get(Tag.SamplingFrequency);
-		if(samplingFrequency == null)
-			throw new Exception("Could not read SamplingFrequency");
-		
-		double frequency = samplingFrequency.getDouble(true);
-		
-		//read number of samples per channel
-		DicomElement samples = dcm.get(Tag.NumberOfWaveformSamples);
-		if(samples == null)
-			throw new Exception("Could not read NumberOfWaveformSamples");
-			
-		int numberOfSamples = samples.getInt(true);
-		
-		// calculate the seconds		
-		this.seconds = (int) (numberOfSamples / frequency);
-		this.samples_per_second = numberOfSamples / seconds;
-		
-		// read number of channels
-		DicomElement channels = dcm.get(Tag.NumberOfWaveformChannels);
-		if(channels == null)
-			throw new Exception("Could not read NumberOfWaveformChannels");
-			
-		this.numberOfChannels = channels.getInt(true);
-		
-		// write the sample data into a 2-dimensional array
-		// first dimension: channel
-		// second dimension: samples
-		
-		this.data = new int[numberOfChannels][numberOfSamples];
-		if(bitsAllocated.getInt(true) == 16) {
-			
-			boolean order = dcm.bigEndian();
-			byte[] tmp_bytes = waveformData.getBytes();
-			short[] tmp = toShort(tmp_bytes, order);
-			
-			for (int i = 0; i < tmp.length; i++ ) {
-				data[i%numberOfChannels][i/numberOfChannels] = (int) tmp[i];
-			}
-		}
-		else if(bitsAllocated.getInt(true) == 8)
-		{
-			byte[] tmp = waveformData.getBytes();
-			for (int i = 0; i < tmp.length; i++ ) {
-				data[i%numberOfChannels][i/numberOfChannels] = (int) tmp[i];
-			}
-		}
-		else
-			throw new Exception("bitsAllocated is an unexpected value, value: " + bitsAllocated.getInt(true));
-		
+	private void readChannelDefinitions(DicomElement channelDef) throws Exception {
 		// read the ChannelDefinitionSequence for additional info about the channels
-		DicomElement channelDef = dcm.get(Tag.ChannelDefinitionSequence);
 		if(channelDef == null) 
 			throw new Exception("Could not read ChannelDefinitionSequence");
 		
@@ -223,11 +152,110 @@ public class WaveformPlugin extends APlugin {
 			if(meaning == null) 
 				throw new Exception("Could not read Code Meaning");
 			
+			//XXX baseline
+			double baseline = object.getDouble(Tag.ChannelBaseline);
+			
+			//XXX unit
+			DicomElement sensitivityUnitsSequence = object.get(Tag.ChannelSensitivityUnitsSequence);
+			DicomObject sensitivityUnit = sensitivityUnitsSequence.getDicomObject();
+			String sensitivityUnitValue = sensitivityUnit.getString(Tag.CodeValue);
+			ChannelUnit channelUnit = null;
+			try {
+				channelUnit = ChannelUnit.valueOf(sensitivityUnitValue);
+			} catch(Exception e) {
+				throw new Exception("Unsupported sensitivity unit: " + sensitivityUnitValue, e);
+			}
+
 			String name = meaning.getValueAsString(new SpecificCharacterSet("UTF-8"), 50);
 			// safe name, sensitivity and sensitivityCorrection in a new ChannelDefinition-Object
-			channelDefinitions[i] = new ChannelDefinition(name, sensitivity, sensitivityCorrection); 
+			channelDefinitions[i] = new ChannelDefinition(name, baseline, sensitivity, sensitivityCorrection, channelUnit);
 		}
+	}
+	
+	private void readData(DicomObject dcm) throws Exception {
+		// read waveform data which contains the samples
+		DicomElement waveformData = dcm.get(Tag.WaveformData);
+		if(waveformData == null)
+			throw new Exception("Could not read WaveformData");
+				
+		// read the number of allocated bits per sample 
+		// used to differ between general ECG and 12 Lead ECG
+		DicomElement bitsAllocated = dcm.get(Tag.WaveformBitsAllocated);
+		if(bitsAllocated == null)
+			throw new Exception("Could not read WaveformBitsAllocated");
 		
+		// write the sample data into a 2-dimensional array
+		// first dimension: channel
+		// second dimension: samples
+		
+		this.data = new int[numberOfChannels][numberOfSamples];		
+		if(bitsAllocated.getInt(true) == 16) {
+			
+			boolean order = dcm.bigEndian();
+			byte[] tmp_bytes = waveformData.getBytes();
+			short[] tmp = toShort(tmp_bytes, order);
+			
+			for (int i = 0; i < tmp.length; i++ ) {
+				data[i%numberOfChannels][i/numberOfChannels] = (int) tmp[i];
+			}
+		}
+		else if(bitsAllocated.getInt(true) == 8)
+		{
+			byte[] tmp = waveformData.getBytes();
+			for (int i = 0; i < tmp.length; i++ ) {
+				data[i%numberOfChannels][i/numberOfChannels] = (int) tmp[i];
+			}
+		}
+		else
+			throw new Exception("bitsAllocated is an unexpected value, value: " + bitsAllocated.getInt(true));
+		
+		//apply baseline
+		for(int i=0;i<data.length;i++) {
+			ChannelDefinition def = channelDefinitions[i];
+			for(int j=0;j<data[i].length;j++)
+				data[i][j] += def.getBaseline();
+		}
+	}
+	
+	public void setData(DicomObject dcm) throws Exception {
+		m_content = new JPanel(new BorderLayout(5, 5));
+		
+		// get WaveformSequence
+		DicomElement temp = dcm.get(Tag.WaveformSequence);
+		if(temp == null)
+			throw new Exception("Could not read WaveformSequence");
+		
+		dcm = temp.getDicomObject(0);
+		
+		// read the sampling frequency, used to calculate the seconds 
+		DicomElement samplingFrequency = dcm.get(Tag.SamplingFrequency);
+		if(samplingFrequency == null)
+			throw new Exception("Could not read SamplingFrequency");
+		
+		double frequency = samplingFrequency.getDouble(true);
+		
+		//read number of samples per channel
+		DicomElement samples = dcm.get(Tag.NumberOfWaveformSamples);
+		if(samples == null)
+			throw new Exception("Could not read NumberOfWaveformSamples");
+			
+		
+		// calculate the seconds		
+		this.numberOfSamples = samples.getInt(true);
+		this.seconds = (int) (numberOfSamples / frequency);
+		this.samples_per_second = numberOfSamples / seconds;
+		
+		// read number of channels
+		DicomElement channels = dcm.get(Tag.NumberOfWaveformChannels);
+		if(channels == null)
+			throw new Exception("Could not read NumberOfWaveformChannels");
+			
+		this.numberOfChannels = channels.getInt(true);
+		
+		readChannelDefinitions(dcm.get(Tag.ChannelDefinitionSequence));		
+		readData(dcm);
+		
+				
 		// this panel will hold all channels and their drawings of the waveform
 		this.channelpane = new JPanel();
 		channelpane.setBackground(Color.BLACK);
@@ -277,7 +305,7 @@ public class WaveformPlugin extends APlugin {
 		
 		// this gets called when the application is resized
 		m_content.addComponentListener(new ComponentAdapter() {
-			@Override
+		
 			public void componentResized(ComponentEvent e) {
 				super.componentResized(e);
 				
@@ -290,7 +318,7 @@ public class WaveformPlugin extends APlugin {
 	}
 	
 	// TODO implement if necessary
-	@Override
+
 	public void setLanguage(Locale locale) {
 		if(locale.getLanguage() == "de") {
 			// deutsch
@@ -727,7 +755,7 @@ public class WaveformPlugin extends APlugin {
 			for(int i = 0; i < data.length; i++) {
 				double min = 0;
 				double max = 0;
-				double scalingValue = definitions[i].getSensitity() * definitions[i].getSensitivityCorrection();
+				double scalingValue = definitions[i].getScaling();
 				for(int j = 0; j < data[i].length; j++) {
 					if(min > data[i][j] * scalingValue)
 					{
@@ -982,6 +1010,7 @@ public class WaveformPlugin extends APlugin {
 		private double valueScaling;
 		private double offset; 
 		private boolean isRhythm;
+		private int highlightedSample;
 		
 		public DrawingPanel(int[] values, double start, ChannelDefinition definition) {
 			super();
@@ -997,8 +1026,8 @@ public class WaveformPlugin extends APlugin {
 			this.end = data.length;
 			this.offset = start;
 			// calculate scaling of the sample values
-			this.valueScaling = this.definition.getSensitity() *
-								this.definition.getSensitivityCorrection();
+			this.valueScaling = this.definition.getScaling();
+			this.highlightedSample = -1;
 			
 			addListeners();
 			this.isRhythm = false;
@@ -1010,14 +1039,24 @@ public class WaveformPlugin extends APlugin {
 		
 		private void addListeners() {
 			// used to get the current position of the mouse pointer into the information panel
-			this.addMouseMotionListener( new MouseMotionAdapter() {
-						
-					public void mouseMoved(MouseEvent e) {						
+			this.addMouseMotionListener( new MouseMotionAdapter() {						
+					public void mouseMoved(MouseEvent e) {			
 						double sec = offset + (e.getPoint().getX() / cellwidth * 0.1);
-						double mv = ((dim.getHeight() / 2.0) - e.getPoint().getY()) / cellheight * 1000;
+
+						//XXX lookup for the nearest sample
+						highlightedSample = (int)Math.round(samples_per_second * sec);
+						if(highlightedSample >= data.length) {
+							highlightedSample = -1;
+							infoPanel.setSeconds(0);
+							infoPanel.setMiliVolt(0);
+						} else {	
+							sec = highlightedSample / (double)samples_per_second;
+							double mv = data[highlightedSample] * valueScaling;		
+							infoPanel.setSeconds(sec);
+							infoPanel.setMiliVolt(mv);
+						}
 						
-						infoPanel.setSeconds(sec);
-						infoPanel.setMiliVolt(mv);
+						repaint();						
 					}
 				}
 			);
@@ -1026,7 +1065,7 @@ public class WaveformPlugin extends APlugin {
 				
 				public void mouseEntered(MouseEvent e) {
 					Toolkit toolkit = Toolkit.getDefaultToolkit();  
-					Image image = new ImageIcon(this.getClass().getClassLoader().getResource("cursorHand.png")).getImage();					
+					Image image = new ImageIcon(this.getClass().getClassLoader().getResource("images/cursorHand.png")).getImage();					
 					Point hotspot = new Point(7,0);
 					Cursor cursor = toolkit.createCustomCursor(image, hotspot, "dicomux"); 
 					setCursor(cursor);
@@ -1039,6 +1078,8 @@ public class WaveformPlugin extends APlugin {
 				public void mouseExited(MouseEvent e) {
 					Cursor normal = new Cursor(Cursor.DEFAULT_CURSOR);
 					setCursor(normal);
+					highlightedSample = -1;
+					repaint();
 				}
 			});
 		}		
@@ -1085,7 +1126,7 @@ public class WaveformPlugin extends APlugin {
 			drawGrid(g2);
 			drawGraph(g2);
 			drawName(g2);
-			
+			highlightSample(g2);
 		}
 		
 		private void drawGrid(Graphics2D g2) {
@@ -1132,38 +1173,66 @@ public class WaveformPlugin extends APlugin {
 			 }	
 		}
 		
-		private void drawName(Graphics2D g2) {
-			g2.setColor(Color.black);
+		private void highlightSample(Graphics2D g2) {
+			double x = this.scalingWidth * (highlightedSample - this.start); 
+			Line2D line = new Line2D.Double(x, 0, x, this.dim.height);
 			
-			g2.setFont(new Font("SanSerif", Font.BOLD, 12));
+			g2.setColor(Color.GREEN);
+			g2.setStroke(new BasicStroke(1f));
+			g2.draw(line);
+		}
 		
-			g2.drawString(definition.getName(), 5, 15);
-			
+		private void drawName(Graphics2D g2) {
+			g2.setColor(Color.black);			
+			g2.setFont(new Font("SanSerif", Font.BOLD, 12));		
+			g2.drawString(definition.getName(), 5, 15);			
 		}
 	}
 	
+	private enum ChannelUnit {uV, mV};
+	
 	// used to save information about a channel
 	private class ChannelDefinition {
-		
 		private String name;
+		private double baseline;
 		private double sensitivity;
 		private int sensitivityCorrection;
+		private ChannelUnit unit;
 		private double minimum;
 		private double maximum;
 					
-		public ChannelDefinition(String name, double sensitity,
-				int sensitivityCorrection) {
+		public ChannelDefinition(String name, double baseline,
+				double sensitity, int sensitivityCorrection, 
+				ChannelUnit unit) {
 			this.name = name;
+			this.baseline = baseline;
 			this.sensitivity = sensitity;
 			this.sensitivityCorrection = sensitivityCorrection;
+			this.unit = unit;
 			this.maximum = 0.0;
 			this.minimum = 0.0;
+		}
+		
+		public double getScaling() {
+			int unitScaling;		
+			if(unit == ChannelUnit.uV)
+				unitScaling = 1;
+			else if(unit == ChannelUnit.mV)
+				unitScaling = 1000;
+			else
+				throw new IllegalStateException("Unsupported unit in ChannelDefinition");
+			
+			return sensitivity * sensitivityCorrection * unitScaling;
 		}
 		
 		public String getName() {
 			return name;
 		}
 
+		public double getBaseline() {
+			return baseline;
+		}
+		
 		public double getSensitity() {
 			return sensitivity;
 		}
@@ -1186,6 +1255,11 @@ public class WaveformPlugin extends APlugin {
 
 		public void setMaximum(double maximum) {
 			this.maximum = maximum;
+		}
+
+		@Override
+		public String toString() {
+			return "<" + name + ", " + sensitivity + ", " + sensitivityCorrection + ", " + unit + ">";
 		}
 	}
 	
@@ -1220,9 +1294,9 @@ public class WaveformPlugin extends APlugin {
 		private void addZoomButtons() {
 			
 			this.zoomOut = new JButton();
-			this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("zoomOut.png")));
+			this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomOut.png")));
 			this.zoomOut.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent arg0) {
 					if(zoomLevel > MAX_ZOOM_OUT)
 					{
@@ -1235,9 +1309,9 @@ public class WaveformPlugin extends APlugin {
 			this.add(this.zoomOut);		
 			
 			this.zoomIn = new JButton();
-			this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("zoomIn.png")));
+			this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomIn.png")));
 			this.zoomIn.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent arg0) {
 					if(zoomLevel < MAX_ZOOM_IN) {
 						zoomLevel += ZOOM_UNIT;
@@ -1249,9 +1323,9 @@ public class WaveformPlugin extends APlugin {
 			this.add(zoomIn);
 			
 			zoomFit = new JButton();
-			zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("fitToPage.png")));
+			zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/fitToPage.png")));
 			zoomFit.addActionListener(new ActionListener() {
-				@Override
+			
 				public void actionPerformed(ActionEvent arg0) {
 					zoomLevel = NO_ZOOM;
 					fitToPage = true;

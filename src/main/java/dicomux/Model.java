@@ -28,14 +28,14 @@ public class Model implements IModel {
 		m_view.registerModel(this);
 	}
 	
-	@Override
+
 	public void initialize() {
 		m_tabObjects.clear();
 		addWorkspace(new TabObject(TabState.WELCOME));
 		m_view.notifyView();
 	}
 	
-	@Override
+
 	public void setWorkspace(int wsId, TabObject tab) {
 		m_tabObjects.setElementAt(tab, wsId);
 		if (tab.isTabActive())
@@ -43,17 +43,17 @@ public class Model implements IModel {
 		m_view.notifyView();
 	}
 	
-	@Override
+
 	public TabObject getWorkspace(int n) {
 		return m_tabObjects.get(n);
 	}
 	
-	@Override
+
 	public int getWorkspaceCount() {
 		return m_tabObjects.size();
 	}
 	
-	@Override
+
 	public void removeWorkspace(int wsId) {
 		if (wsId < m_tabObjects.size() && wsId >= 0) {
 			m_tabObjects.remove(wsId);
@@ -67,14 +67,14 @@ public class Model implements IModel {
 		}
 	}
 	
-	@Override
+
 	public void addWorkspace(TabObject tab) {
 		m_tabObjects.add(tab);
 		setActiveWorkspace(m_tabObjects.size() - 1);
 		m_view.notifyView();
 	}
 	
-	@Override
+
 	public void setActiveWorkspace(int wsId) {
 		if (wsId >= 0 && wsId < m_tabObjects.size()) {
 			for(TabObject i: m_tabObjects) { // set all workspaces to inactive
