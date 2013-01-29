@@ -126,7 +126,7 @@ public class PDFPlugin extends APlugin {
 		m_content.add(createToolsMenu(), BorderLayout.NORTH);
 		
 		m_content.addComponentListener(new ComponentAdapter() {
-			@Override
+		
 			public void componentResized(ComponentEvent e) {
 				super.componentResized(e);
 				if (m_zoomPartModeToggleButton != null &&		// reset zoom on resize
@@ -168,10 +168,10 @@ public class PDFPlugin extends APlugin {
 	 * @return the new button :-)
 	 */
 	public JToggleButton createZoomPartButton() {
-		m_zoomPartModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("zoomPart.png")), false);
+		m_zoomPartModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomPart.png")), false);
 		m_zoomPartModeToggleButton.setSelected(false);
 		m_zoomPartModeToggleButton.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				m_zoomActive = !m_zoomActive;			// invert the current state
 				m_pdfPanel.useZoomTool(m_zoomActive);	// write the new state to the GUI
@@ -194,10 +194,10 @@ public class PDFPlugin extends APlugin {
 //	 * @return the new button :-)
 //	 */
 //	public JToggleButton createZoomInButton() {
-//		m_zoomInModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("zoomIn.png")), false);
+//		m_zoomInModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomIn.png")), false);
 //		m_zoomInModeToggleButton.setSelected(false);
 //		m_zoomInModeToggleButton.addActionListener(new ActionListener() {
-//			@Override
+//		
 //			public void actionPerformed(ActionEvent e) {
 //				//do zoom
 //				setScale(m_currentScale - 10);
@@ -211,10 +211,10 @@ public class PDFPlugin extends APlugin {
 //	 * @return the new button :-)
 //	 */
 //	public JToggleButton createZoomOutButton() {
-//		m_zoomOutModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("zoomOut.png")), false);
+//		m_zoomOutModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomOut.png")), false);
 //		m_zoomOutModeToggleButton.setSelected(false);
 //		m_zoomOutModeToggleButton.addActionListener(new ActionListener() {
-//			@Override
+//		
 //			public void actionPerformed(ActionEvent e) {
 //				//do zoom
 //				setScale(m_currentScale + 10);
@@ -228,10 +228,10 @@ public class PDFPlugin extends APlugin {
 	 * @return the new button :-)
 	 */
 	public JToggleButton createPrevPageButton() {
-		m_prevPageModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("go-previous.png")), false);
+		m_prevPageModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/go-previous.png")), false);
 		m_prevPageModeToggleButton.setSelected(false);
 		m_prevPageModeToggleButton.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				//do prev
 				if(m_pdfPanel.getPage().getPageNumber() - 1 < 1)
@@ -248,10 +248,10 @@ public class PDFPlugin extends APlugin {
 	 * @return the new button :-)
 	 */
 	public JToggleButton createNextPageButton() {
-		m_nextPageModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("go-next.png")), false);
+		m_nextPageModeToggleButton = new JToggleButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/go-next.png")), false);
 		m_nextPageModeToggleButton.setSelected(false);
 		m_nextPageModeToggleButton.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				//do next
 				if(m_pdfPanel.getPage().getPageNumber()+1 > m_pdfFile.getNumPages())
@@ -271,10 +271,10 @@ public class PDFPlugin extends APlugin {
 //		m_scaleModeTextField = new JTextField(6);
 //		m_scaleModeTextField.setText(m_preferedScale + "%");
 //		m_scaleModeTextField.addKeyListener(new KeyListener() {
-//			@Override
+//		
 //			public void keyPressed(KeyEvent arg0) {	
 //			}
-//			@Override
+//		
 //			public void keyReleased(KeyEvent arg0) {	
 //				if(arg0.getKeyCode() == KeyEvent.VK_ENTER)
 //				{
@@ -290,7 +290,7 @@ public class PDFPlugin extends APlugin {
 //					setScale(new_scale);
 //				}
 //			}
-//			@Override
+//		
 //			public void keyTyped(KeyEvent arg0) {
 //			}
 //		});
@@ -314,12 +314,12 @@ public class PDFPlugin extends APlugin {
 		}
 	}
 	
-	@Override
+
 	public String getName() {
 		return "Encapsulated PDF";
 	}
 	
-	@Override
+
 	public void setData(DicomObject dcm) throws Exception {
 		if (dcm != null) {
 			DicomElement element = dcm.get(Tag.EncapsulatedDocument);
@@ -403,7 +403,7 @@ public class PDFPlugin extends APlugin {
 //		m_scroll.updateUI();
 //	}
 	
-	@Override
+
 	public void setLanguage(Locale locale) {
 		m_locale = locale;
 		

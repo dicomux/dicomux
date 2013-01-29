@@ -54,17 +54,15 @@ public class Controller implements IController {
 		m_availblePlugins.add(new RawPlugin());
 	}
 	
-	@Override
 	public void closeAllWorkspaces() {
 		m_model.initialize();
 	}
 	
-	@Override
 	public void closeWorkspace() {
 		m_model.removeWorkspace(m_view.getActiveWorkspaceId());
 	}
 	
-	@Override
+
 	public void openAbout() {
 		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
 			switch (m_model.getWorkspace(i).getTabState()) {
@@ -74,7 +72,7 @@ public class Controller implements IController {
 		m_model.addWorkspace(new TabObject(TabState.ABOUT));
 	}
 	
-	@Override
+
 	public void openDicomDirectoryDialog() {
 		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
 			switch (m_model.getWorkspace(i).getTabState()) {
@@ -87,7 +85,7 @@ public class Controller implements IController {
 		m_model.addWorkspace(new TabObject(TabState.DIR_OPEN));
 	}
 	
-	@Override
+
 	public void openDicomFileDialog() {
 		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
 			switch (m_model.getWorkspace(i).getTabState()) {
@@ -100,12 +98,12 @@ public class Controller implements IController {
 		m_model.addWorkspace(new TabObject(TabState.FILE_OPEN));
 	}
 	
-	@Override
+
 	public void closeApplication() {
 		System.exit(0);
 	}
 	
-	@Override
+
 	public void openDicomFile(String path) {
 		try {
 			// open the dicom file
@@ -160,12 +158,12 @@ public class Controller implements IController {
 		}
 	}
 	
-	@Override
+
 	public void setActiveWorkspace(int n) {
 		m_model.setActiveWorkspace(n);
 	}
 	
-	@Override
+
 	public void openDicomDirectory(String path) {
 		try{
 			// open the dicom file
@@ -202,7 +200,7 @@ public class Controller implements IController {
 		}
 	}
 	
-	@Override
+
 	public void setLanguage(Locale locale) {
 		if (locale != null) {
 			m_view.setLanguage(locale);
@@ -215,7 +213,7 @@ public class Controller implements IController {
 		}
 	}
 	
-	@Override
+
 	public void setActivePlugin(String name) {
 		try {
 			// search for the plug-in with the suitable name

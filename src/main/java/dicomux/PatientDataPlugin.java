@@ -25,13 +25,13 @@ public class PatientDataPlugin extends APlugin {
 		m_keyTag.addKey(Tag.PatientBirthDate, null);
 	}
 	
-	@Override
+
 	public String getName() {
 		return "Patient Data";
 	}
 	
 	// TODO extend a little bit :-)
-	@Override
+
 	public void setData(DicomObject dcm) throws Exception {
 		JPanel content = new JPanel(new GridLayout(3, 2, 5, 5));
 		
@@ -58,7 +58,7 @@ public class PatientDataPlugin extends APlugin {
 	}
 	
 	// TODO implement localization
-	@Override
+
 	public void setLanguage(Locale locale) {
 		
 	}

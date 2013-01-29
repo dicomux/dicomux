@@ -188,7 +188,7 @@ public class WaveformPlugin extends APlugin {
 		// first dimension: channel
 		// second dimension: samples
 		
-		this.data = new int[numberOfChannels][numberOfSamples];
+		this.data = new int[numberOfChannels][numberOfSamples];		
 		if(bitsAllocated.getInt(true) == 16) {
 			
 			boolean order = dcm.bigEndian();
@@ -1010,6 +1010,7 @@ public class WaveformPlugin extends APlugin {
 		private double valueScaling;
 		private double offset; 
 		private boolean isRhythm;
+		private int highlightedSample;
 		
 		public DrawingPanel(int[] values, double start, ChannelDefinition definition) {
 			super();
@@ -1026,6 +1027,7 @@ public class WaveformPlugin extends APlugin {
 			this.offset = start;
 			// calculate scaling of the sample values
 			this.valueScaling = this.definition.getScaling();
+			this.highlightedSample = -1;
 			
 			addListeners();
 			this.isRhythm = false;
@@ -1037,14 +1039,24 @@ public class WaveformPlugin extends APlugin {
 		
 		private void addListeners() {
 			// used to get the current position of the mouse pointer into the information panel
-			this.addMouseMotionListener( new MouseMotionAdapter() {
-						
-					public void mouseMoved(MouseEvent e) {						
+			this.addMouseMotionListener( new MouseMotionAdapter() {						
+					public void mouseMoved(MouseEvent e) {			
 						double sec = offset + (e.getPoint().getX() / cellwidth * 0.1);
-						double mv = ((dim.getHeight() / 2.0) - e.getPoint().getY()) / cellheight * 1000;
+
+						//XXX lookup for the nearest sample
+						highlightedSample = (int)Math.round(samples_per_second * sec);
+						if(highlightedSample >= data.length) {
+							highlightedSample = -1;
+							infoPanel.setSeconds(0);
+							infoPanel.setMiliVolt(0);
+						} else {	
+							sec = highlightedSample / (double)samples_per_second;
+							double mv = data[highlightedSample] * valueScaling;		
+							infoPanel.setSeconds(sec);
+							infoPanel.setMiliVolt(mv);
+						}
 						
-						infoPanel.setSeconds(sec);
-						infoPanel.setMiliVolt(mv);
+						repaint();						
 					}
 				}
 			);
@@ -1053,7 +1065,7 @@ public class WaveformPlugin extends APlugin {
 				
 				public void mouseEntered(MouseEvent e) {
 					Toolkit toolkit = Toolkit.getDefaultToolkit();  
-					Image image = new ImageIcon(this.getClass().getClassLoader().getResource("cursorHand.png")).getImage();					
+					Image image = new ImageIcon(this.getClass().getClassLoader().getResource("images/cursorHand.png")).getImage();					
 					Point hotspot = new Point(7,0);
 					Cursor cursor = toolkit.createCustomCursor(image, hotspot, "dicomux"); 
 					setCursor(cursor);
@@ -1066,6 +1078,8 @@ public class WaveformPlugin extends APlugin {
 				public void mouseExited(MouseEvent e) {
 					Cursor normal = new Cursor(Cursor.DEFAULT_CURSOR);
 					setCursor(normal);
+					highlightedSample = -1;
+					repaint();
 				}
 			});
 		}		
@@ -1112,7 +1126,7 @@ public class WaveformPlugin extends APlugin {
 			drawGrid(g2);
 			drawGraph(g2);
 			drawName(g2);
-			
+			highlightSample(g2);
 		}
 		
 		private void drawGrid(Graphics2D g2) {
@@ -1159,13 +1173,19 @@ public class WaveformPlugin extends APlugin {
 			 }	
 		}
 		
-		private void drawName(Graphics2D g2) {
-			g2.setColor(Color.black);
+		private void highlightSample(Graphics2D g2) {
+			double x = this.scalingWidth * (highlightedSample - this.start); 
+			Line2D line = new Line2D.Double(x, 0, x, this.dim.height);
 			
-			g2.setFont(new Font("SanSerif", Font.BOLD, 12));
+			g2.setColor(Color.GREEN);
+			g2.setStroke(new BasicStroke(1f));
+			g2.draw(line);
+		}
 		
-			g2.drawString(definition.getName(), 5, 15);
-			
+		private void drawName(Graphics2D g2) {
+			g2.setColor(Color.black);			
+			g2.setFont(new Font("SanSerif", Font.BOLD, 12));		
+			g2.drawString(definition.getName(), 5, 15);			
 		}
 	}
 	
@@ -1274,7 +1294,7 @@ public class WaveformPlugin extends APlugin {
 		private void addZoomButtons() {
 			
 			this.zoomOut = new JButton();
-			this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("zoomOut.png")));
+			this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomOut.png")));
 			this.zoomOut.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent arg0) {
@@ -1289,7 +1309,7 @@ public class WaveformPlugin extends APlugin {
 			this.add(this.zoomOut);		
 			
 			this.zoomIn = new JButton();
-			this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("zoomIn.png")));
+			this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomIn.png")));
 			this.zoomIn.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent arg0) {
@@ -1303,7 +1323,7 @@ public class WaveformPlugin extends APlugin {
 			this.add(zoomIn);
 			
 			zoomFit = new JButton();
-			zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("fitToPage.png")));
+			zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/fitToPage.png")));
 			zoomFit.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent arg0) {
@@ -1367,5 +1387,6 @@ public class WaveformPlugin extends APlugin {
 			}
 		}
 		
-	}	
+	}
+	
 }

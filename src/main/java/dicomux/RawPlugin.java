@@ -71,7 +71,7 @@ public class RawPlugin extends APlugin {
 	 */
 	private String m_currentCard;
 	
-	@Override
+
 	public String getName() {
 		return "Raw Data";
 	}
@@ -105,7 +105,7 @@ public class RawPlugin extends APlugin {
 		
 		// create toolbar
 		JPanel tools = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		m_detailsButton = createDetailsButton("zoomPart.png");
+		m_detailsButton = createDetailsButton("images/zoomPart.png");
 		m_detailsButton.setEnabled(false);
 		tools.add(m_detailsButton);
 		treeCard.add(tools, BorderLayout.NORTH);
@@ -128,7 +128,7 @@ public class RawPlugin extends APlugin {
 		
 		// create toolbar
 		JPanel tools = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		tools.add(createDetailsButton("go-previous.png"));
+		tools.add(createDetailsButton("images/go-previous.png"));
 		tools.add(createSaveButton());
 		detailsCard.add(tools, BorderLayout.NORTH);
 		
@@ -151,7 +151,7 @@ public class RawPlugin extends APlugin {
 		m_saveDialog = new JFileChooser();
 		m_saveDialog.setDialogType(JFileChooser.SAVE_DIALOG);
 		m_saveDialog.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = (JFileChooser) e.getSource();
 				if (JFileChooser.APPROVE_SELECTION.equals(e.getActionCommand())) { // the user wants us to save the content
@@ -173,7 +173,7 @@ public class RawPlugin extends APlugin {
 	public JButton createDetailsButton(String pictureFileName) {
 		JButton detailsButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource(pictureFileName)));
 		detailsButton.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				if (m_currentCard.equals("TREE")) {
 					m_detailsText.setText(new String(m_dicomContent));
@@ -191,9 +191,9 @@ public class RawPlugin extends APlugin {
 	 * @return the new button :-)
 	 */
 	public JButton createSaveButton() {
-		JButton saveButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("saveFile.png")));
+		JButton saveButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/saveFile.png")));
 		saveButton.addActionListener(new ActionListener() {
-			@Override
+		
 			public void actionPerformed(ActionEvent e) {
 				switchToCard("SAVE");
 			}
@@ -216,12 +216,12 @@ public class RawPlugin extends APlugin {
 		}
 	}
 	
-	@Override
+
 	public void setLanguage(Locale locale) {
 		// not needed
 	}
 	
-	@Override
+
 	public void setData(DicomObject dcm) throws Exception{
 		// create a new DefaultTableModel and extract all DicomElements of the DicomObject into it
 		m_tree.setModel(new DefaultTreeModel(extractAllDicomElements("/", dcm))); 
@@ -353,7 +353,7 @@ public class RawPlugin extends APlugin {
 	private class CellRendererWithButton implements TreeCellRenderer {
 		private DefaultTreeCellRenderer m_defaultRenderer = new DefaultTreeCellRenderer();
 		
-		@Override
+	
 		public Component getTreeCellRendererComponent(JTree tree, Object value,
 				boolean selected, boolean expanded, boolean leaf, int row,
 				boolean hasFocus) {

@@ -11,19 +11,19 @@ import org.dcm4che2.data.DicomObject;
  */
 public class PluginAdapter extends APlugin {
 
-	@Override
+
 	public String getName() {
 		// TODO Auto-generated method stub
 		return "";
 	}
 
-	@Override
+
 	public void setData(DicomObject dcm) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
-	@Override
+
 	public void setLanguage(Locale locale) {
 		// TODO Auto-generated method stub
 
